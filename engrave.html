@@ -16,7 +16,7 @@
 		var cipher = Engrave.encrypt(plain, key, iv);
 		document.write(plain+'<br/>');
 		document.write(cipher+'<br/>');
-		document.write(Engrave.decrypt(Array.concat(cipher[0],(cipher[1]||[])), key, iv));
+		document.write(Engrave.decrypt(cipher, key, iv));
 	</script>
 </body>
 </html>

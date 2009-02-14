@@ -28,8 +28,14 @@
  */
 
 var Engrave = (function() {
-	var //AES_NR = 14, AES_NK = 8,
-	AES_NR = 10, AES_NK = 4,
+	var
+
+	flatten = function(arr) {
+		return Array.prototype.concat.apply([], arr);
+	},
+
+	//AES_NR = 14, AES_NK = 8, // AES-256
+	AES_NR = 10, AES_NK = 4, // AES-128
 	AES_SBOX = [99,124,119,123,242,107,111,197,48,1,103,43,254,215,
 		171,118,202,130,201,125,250,89,71,240,173,212,162,175,
 		156,164,114,192,183,253,147,38,54,63,247,204,52,165,229,
@@ -288,7 +294,7 @@ var Engrave = (function() {
 			res[nblocks] = aes_xor_partial_block(next,
 				plain.slice(nblocks*16, nblocks*16+16));
 		}
-		return res;
+		return flatten(res);
 	},
 
 	aes_decrypt_cfb = function(cipher, key, iv) {
@@ -307,7 +313,7 @@ var Engrave = (function() {
 			res[nblocks] = aes_xor_partial_block(next,
 				cipher.slice(nblocks*16, nblocks*16+16));
 		}
-		return res;
+		return flatten(res);
 	};
 
 	return {
