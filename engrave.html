@@ -1,0 +1,22 @@
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<meta http-equiv="Content-Language" content="ko"/>
+	<title>engrave test page</title>
+	<meta name="author" content="Kang Seonghoon"/>
+	<script type="text/javascript" src="engrave.js"></script>
+</head>
+<body>
+	<h1>engrave</h1>
+	<script>
+		var iv = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+		var key = [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
+		var plain = [33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 40, 50, 51, 52, 53];
+		var cipher = Engrave.encrypt(plain, key, iv);
+		document.write(plain+'<br/>');
+		document.write(cipher+'<br/>');
+		document.write(Engrave.decrypt(Array.concat(cipher[0],(cipher[1]||[])), key, iv));
+	</script>
+</body>
+</html>
