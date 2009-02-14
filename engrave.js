@@ -308,7 +308,7 @@ var Engrave = (function() {
 			res[i] = aes_xor_block(next, block);
 			next = block;
 		}
-		if (plain.length % 16 !== 0) {
+		if (cipher.length % 16 !== 0) {
 			next = aes_encrypt_block(next, key);
 			res[nblocks] = aes_xor_partial_block(next,
 				cipher.slice(nblocks*16, nblocks*16+16));
@@ -327,6 +327,7 @@ var Engrave = (function() {
 
 	from_array = function(arr) {
 		var s = [];
+		if (arr.length % 2 == 1) return null;
 		for (var i = 0; i < arr.length; i += 2) {
 			s.push((arr[i] << 8) | arr[i+1]);
 		}
@@ -334,6 +335,57 @@ var Engrave = (function() {
 	},
 
 	to_compressed_array = function(s) {
+		var arr = [], code, prev = 128;
+		for (var i = 0; i < s.length; ++i) {
+			code = s.charCodeAt(i);
+			if (code < 128) {
+				arr.push(code);
+			} else {
+				code -= prev;
+				if (code >= -32 && code < 32) {
+					// 10xxxxxx
+					arr.push(128 | (code & 63));
+				} else if (code >= -4096 && code < 4096) {
+					// 110xxxxx xxxxxxxx
+					arr.push(192 | ((code >> 8) & 31), code & 255);
+				} else {
+					// 111xxxxx xxxxxxxx xxxxxxxx
+					arr.push(224 | ((code >> 16) & 31), (code >> 8) & 255, code & 255);
+				}
+				prev += code;
+			}
+		}
+		return arr;
+	},
+
+	from_compressed_array = function(arr) {
+		var s = [], ch, code, prev = 128;
+		for (var i = 0; i < arr.length; ++i) {
+			ch = arr[i];
+			if (ch < 128) {
+				s.push(ch);
+			} else {
+				if (ch < 192) {
+					code = ((ch + 32) & 63) - 32;
+				} else if (ch < 224) {
+					if (i + 1 >= arr.length) return null;
+					ch = (ch << 8) | arr[i+1];
+					i += 1;
+					code = ((ch + 4096) & 8191) - 4096;
+				} else {
+					if (i + 2 >= arr.length) return null;
+					ch = (ch << 16) | (arr[i+1] << 8) | arr[i+2];
+					i += 2;
+					code = ((ch + 1048576) & 2097151) - 1048576;
+				}
+				s.push(prev += code);
+			}
+		}
+		return String.fromCharCode.apply(null, s);
+	},
+
+	to_encoded_hangeul = function(arr) {
+		// packs five octets (40 bits) to three hangeul syllables
 	},
 
 	encrypt = function(s, key, iv) {
@@ -344,6 +396,8 @@ var Engrave = (function() {
 		'decrypt_raw': aes_decrypt_cfb,
 		'to_array': to_array,
 		'from_array': from_array,
+		'to_compressed_array': to_compressed_array,
+		'from_compressed_array': from_compressed_array
 	};
 })();
 
