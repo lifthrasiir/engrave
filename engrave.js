@@ -314,11 +314,36 @@ var Engrave = (function() {
 				cipher.slice(nblocks*16, nblocks*16+16));
 		}
 		return flatten(res);
+	},
+
+	to_array = function(s) {
+		var arr = [], code;
+		for (var i = 0; i < s.length; ++i) {
+			code = s.charCodeAt(i);
+			arr.push(code >> 8, code & 255);
+		}
+		return arr;
+	},
+
+	from_array = function(arr) {
+		var s = [];
+		for (var i = 0; i < arr.length; i += 2) {
+			s.push((arr[i] << 8) | arr[i+1]);
+		}
+		return String.fromCharCode.apply(null, s);
+	},
+
+	to_compressed_array = function(s) {
+	},
+
+	encrypt = function(s, key, iv) {
 	};
 
 	return {
-		'encrypt': aes_encrypt_cfb,
-		'decrypt': aes_decrypt_cfb
+		'encrypt_raw': aes_encrypt_cfb,
+		'decrypt_raw': aes_decrypt_cfb,
+		'to_array': to_array,
+		'from_array': from_array,
 	};
 })();
 

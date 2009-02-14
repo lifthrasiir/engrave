@@ -12,11 +12,11 @@
 	<script>
 		var iv = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 		var key = [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
-		var plain = [33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 40, 50, 51, 52, 53];
-		var cipher = Engrave.encrypt(plain, key, iv);
+		var plain = 'this is just a testing plain text; of course it does not belong to any test cases.';
+		var cipher = Engrave.encrypt_raw(Engrave.to_array(plain), key, iv);
 		document.write(plain+'<br/>');
 		document.write(cipher+'<br/>');
-		document.write(Engrave.decrypt(cipher, key, iv));
+		document.write(Engrave.from_array(Engrave.decrypt_raw(cipher, key, iv)));
 	</script>
 </body>
 </html>
