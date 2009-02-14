@@ -368,12 +368,12 @@ var Engrave = (function() {
 				if (ch < 192) {
 					code = ((ch + 32) & 63) - 32;
 				} else if (ch < 224) {
-					if (i + 1 >= arr.length) return null;
+					if (i + 1 > arr.length) return null;
 					ch = (ch << 8) | arr[i+1];
 					i += 1;
 					code = ((ch + 4096) & 8191) - 4096;
 				} else {
-					if (i + 2 >= arr.length) return null;
+					if (i + 2 > arr.length) return null;
 					ch = (ch << 16) | (arr[i+1] << 8) | arr[i+2];
 					i += 2;
 					code = ((ch + 1048576) & 2097151) - 1048576;
@@ -386,6 +386,90 @@ var Engrave = (function() {
 
 	to_encoded_hangeul = function(arr) {
 		// packs five octets (40 bits) to three hangeul syllables
+		var s = [], code, limit = Math.floor(arr.length / 5) * 5;
+		var x, y;
+		for (var i = 0; i < limit; i += 5) {
+			// A, B, C, D, E -> <BC,DE,A>, BC', DE'
+			x = (arr[i+1] << 8) | arr[i+2];
+			y = (arr[i+3] << 8) | arr[i+4];
+			s.push(0xac00 + ((((x/11172)|0) * 6 + ((y/11172)|0)) << 8) + arr[i],
+				0xac00 + x % 11172, 0xac00 + y % 11172);
+		}
+
+		switch (arr.length - limit) {
+		case 4:
+			// A, B, C, D -> <7,1,AB*6+CD>, AB', CD'
+			x = (arr[limit] << 8) | arr[limit+1];
+			y = (arr[limit+2] << 8) | arr[limit+3];
+			s.push(0xac00 + (43 << 8) + ((x/11172)|0) * 6 + ((y/11172)|0),
+				0xac00 + x % 11172, 0xac00 + y % 11172);
+			break;
+
+		case 3:
+			// A, B, C -> <6,BC,A>, BC'
+			x = (arr[limit+1] << 8) | arr[limit+2];
+			s.push(0xac00 + ((36 + ((x/11172)|0)) << 8) + arr[limit],
+				0xac00 + x % 11172);
+			break;
+
+		case 2:
+			// A, B -> <7,1,6*6+AB>, AB'
+			x = (arr[limit] << 8) | arr[limit+1];
+			s.push(0xac00 + (43 << 8) + 36 + ((x/11172)|0), 0xac00 + x % 11172);
+			break;
+
+		case 1:
+			// A -> <7,0,A>
+			s.push(0xac00 + (42 << 8) + arr[limit]);
+			break;
+		}
+
+		return String.fromCharCode.apply(null, s);
+	},
+
+	from_encoded_hangeul = function(s) {
+		s = s.replace(/[^\uac00-\ud7a4]/g, '');
+
+		var arr = [], ch;
+		var code, x, y, z;
+		for (var i = 0; i < s.length; i += 3) {
+			ch = s.charCodeAt(i) - 0xac00;
+			x = ((ch >> 8) / 6) | 0;
+			y = ((ch >> 8) % 6);
+			z = ch & 255;
+			if (x < 6) { // A, B, C, D, E -> <BC,DE,A>, BC', DE'
+				if (i + 3 > s.length) return null;
+				arr.push(z);
+				code = x * 11172 + (s.charCodeAt(i+1) - 0xac00);
+				arr.push(code >> 8, code & 255);
+				code = y * 11172 + (s.charCodeAt(i+2) - 0xac00);
+				arr.push(code >> 8, code & 255);
+			} else if (x < 7) { // A, B, C -> <6,BC,A>, BC'
+				if (i + 2 != s.length) return null;
+				arr.push(z);
+				code = y * 11172 + (s.charCodeAt(i+1) - 0xac00);
+				arr.push(code >> 8, code & 255);
+			} else if (y < 1) { // A -> <7,0,A>
+				if (i + 1 != s.length) return null;
+				arr.push(z);
+			} else if (z < 36) { // A, B, C, D -> <7,1,AB*6+CD>, AB', CD'
+				if (i + 3 != s.length) return null;
+				x = (z / 6) | 0;
+				y = (z % 6);
+				code = x * 11172 + (s.charCodeAt(i+1) - 0xac00);
+				arr.push(code >> 8, code & 255);
+				code = y * 11172 + (s.charCodeAt(i+2) - 0xac00);
+				arr.push(code >> 8, code & 255);
+			} else if (z < 42) { // A, B -> <7,1,6*6+AB>, AB'
+				if (i + 2 != s.length) return null;
+				code = (z % 6) * 11172 + (s.charCodeAt(i+1) - 0xac00);
+				arr.push(code >> 8, code & 255);
+			} else {
+				return null;
+			}
+		}
+
+		return arr;
 	},
 
 	encrypt = function(s, key, iv) {
@@ -397,7 +481,9 @@ var Engrave = (function() {
 		'to_array': to_array,
 		'from_array': from_array,
 		'to_compressed_array': to_compressed_array,
-		'from_compressed_array': from_compressed_array
+		'from_compressed_array': from_compressed_array,
+		'to_encoded_hangeul': to_encoded_hangeul,
+		'from_encoded_hangeul': from_encoded_hangeul
 	};
 })();
 

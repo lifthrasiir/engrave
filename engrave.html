@@ -43,16 +43,20 @@
 			$('plain_encoded').value = to_hex(plainx);
 			var cipher = Engrave.encrypt_raw(plainx, key, iv);
 			$('cipher').value = to_hex(cipher);
-			$('stat').value = 'original ' + plain.length + ' → compressed ' + plainx.length + ' → encoded ?';
+			var cipherx = Engrave.to_encoded_hangeul(cipher);
+			$('cipher_encoded').value = cipherx;
+			$('stat').value = 'original ' + plain.length + ' → compressed ' + plainx.length + ' → encoded ' + cipherx.length;
 		}
 
 		function decrypt() {
-			var cipher = from_hex($('cipher').value);
+			var cipherx = $('cipher_encoded').value;
+			var cipher = Engrave.from_encoded_hangeul(cipherx);
+			$('cipher').value = to_hex(cipher);
 			var plainx = Engrave.decrypt_raw(cipher, key, iv);
 			$('plain_encoded').value = to_hex(plainx);
 			var plain = Engrave.from_compressed_array(plainx);
 			$('plain').value = plain;
-			$('stat').value = 'original ' + plain.length + ' → compressed ' + plainx.length + ' → encoded ?';
+			$('stat').value = 'original ' + plain.length + ' ← compressed ' + plainx.length + ' ← encoded ' + cipherx.length;
 		}
 
 		function reset() {
@@ -70,5 +74,6 @@
 	<input type="text" id="stat" size="40"></span>
 	<br/>
 	<textarea id="cipher" rows="5" cols="70"></textarea><br/>
+	<textarea id="cipher_encoded" rows="10" cols="70"></textarea><br/>
 </body>
 </html>
