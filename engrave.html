@@ -38,9 +38,9 @@
 		var key = [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
 
 		function encrypt() {
+			var plain = $('plain').value;
 			reset();
 
-			var plain = $('plain').value;
 			var plainx = Engrave.to_compressed_array(plain);
 			$('plain_encoded').value = to_hex(plainx);
 			var cipher = Engrave.encrypt_raw(plainx, key, iv);
@@ -51,9 +51,9 @@
 		}
 
 		function decrypt() {
+			var cipherx = $('cipher_encoded').value;
 			reset();
 
-			var cipherx = $('cipher_encoded').value;
 			var cipher = Engrave.from_encoded_hangeul(cipherx);
 			if (cipher === null) {
 				$('stat').value = '(cannot decode ciphertext.)';
@@ -75,6 +75,7 @@
 			$('plain').value = '';
 			$('plain_encoded').value = '';
 			$('cipher').value = '';
+			$('cipher_encoded').value = '';
 			$('stat').value = '';
 		}
 	</script>
